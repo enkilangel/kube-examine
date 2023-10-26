@@ -112,8 +112,6 @@ kubectl apply -f kube-bench-master.yaml
 kubectl apply -f kube-bench-node.yaml
 KUBE_BENCH_MASTER=`kubectl get pods --selector=job-name=kube-bench-master --no-headers | awk '{print $1}'`
 KUBE_BENCH_NODE=`kubectl get pods --selector=job-name=kube-bench-node --no-headers | awk '{print $1}'`
-echo $KUBE_BENCH_MASTER
-echo $KUBE_BENCH_NODE
 kubectl wait job kube-bench-master --for condition=complete
 kubectl logs $KUBE_BENCH_MASTER > ./$CLNAME/txt/getKubeBenchMaster.txt
 kubectl wait job kube-bench-node --for condition=complete
