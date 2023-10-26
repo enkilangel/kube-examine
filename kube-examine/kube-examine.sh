@@ -101,5 +101,25 @@ echo "Export configuration about k8s networkpolicy..."
 kubectl get networkpolicy --all-namespaces > ./$CLNAME/txt/getNetworkPolicy.txt
 kubectl get networkpolicy --all-namespaces -o json  > ./$CLNAME/json/getNetworkPolicy.json
 
-## archive folder 
+## get info about kube-system configMaps
+echo "Export configuration about k8s kube-systm configMaps..."
+kubectl get configmap -n kube-system kubeadm-config -o jsonpath='{.data.ClusterConfiguration}' > ./$CLNAME/txt/getKubeadmConfigMap.txt
+kubectl get configmap -n kube-system kubelet-config -o jsonpath='{.data.kubelet}' > ./$CLNAME/txt/getKubeletConfigMap.txt
+
+## Run kube-bench tests
+echo "Run kube-bench tests..."
+kubectl apply -f kube-bench-master.yaml
+kubectl apply -f kube-bench-node.yaml
+KUBE_BENCH_MASTER=`kubectl get pods --selector=job-name=kube-bench-master --no-headers | awk '{print $1}'`
+KUBE_BENCH_NODE=`kubectl get pods --selector=job-name=kube-bench-node --no-headers | awk '{print $1}'`
+echo $KUBE_BENCH_MASTER
+echo $KUBE_BENCH_NODE
+kubectl wait job kube-bench-master --for condition=complete
+kubectl logs $KUBE_BENCH_MASTER > ./$CLNAME/txt/getKubeBenchMaster.txt
+kubectl wait job kube-bench-node --for condition=complete
+kubectl logs $KUBE_BENCH_NODE > ./$CLNAME/txt/getKubeBenchNode.txt
+kubectl delete -f kube-bench-master.yaml
+kubectl delete -f kube-bench-node.yaml
+
+## archive folder
 tar -czvf $CLNAME.tar.gz ./$CLNAME
